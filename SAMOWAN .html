@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMOWAN | المنتجات الرقمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .glass-effect {
+            background: rgba(238, 242, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef2ff;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-indigo-50 text-gray-800">
+
+    <!-- Navigation / Header Box (Left) -->
+    <div class="fixed top-4 left-4 z-50">
+        <button onclick="toggleMenu()" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2">
+            <i class="fas fa-bars"></i>
+            <span class="text-sm font-bold" data-i18n="menuBtn">القائمة / السلة</span>
+            <span id="cart-badge" class="bg-amber-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+        </button>
+    </div>
+
+    <!-- Language Switcher (Right) -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg p-1 flex items-center border border-indigo-100">
+            <i class="fas fa-globe text-blue-600 mx-2"></i>
+            <select id="language-selector" onchange="changeLanguage(this.value)" class="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer py-2 pr-2 pl-4 rounded-full appearance-none">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+            </select>
+            <i class="fas fa-chevron-down text-gray-400 text-xs mx-2 pointer-events-none"></i>
+        </div>
+    </div>
+
+    <!-- Main Menu Modal (Cart & Account) -->
+    <div id="menu-modal" class="fixed inset-0 bg-indigo-900 bg-opacity-40 z-40 hidden transition-opacity duration-300">
+        <div class="absolute top-4 left-4 w-96 max-w-[90%] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Tabs -->
+            <div class="flex border-b">
+                <button onclick="switchTab('cart')" id="tab-cart-btn" class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600 font-bold bg-indigo-50" data-i18n="cartTab">سلة المشتريات</button>
+                <button onclick="switchTab('account')" id="tab-account-btn" class="flex-1 py-3 text-gray-500 hover:text-blue-600" data-i18n="accountTab">حسابي</button>
+            </div>
+
+            <!-- Cart Content -->
+            <div id="tab-cart" class="p-4 overflow-y-auto flex-1">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2" data-i18n="selectedProducts">المنتجات المختارة</h3>
+                <div id="cart-items" class="space-y-4">
+                    <p class="text-gray-500 text-center py-4" data-i18n="emptyCart">السلة فارغة حالياً</p>
+                </div>
+                <!-- Note inside cart -->
+                <div class="mt-4 p-3 bg-amber-50 text-amber-800 text-xs rounded border border-amber-200 hidden" id="cart-note">
+                    <i class="fas fa-info-circle"></i> <span data-i18n="cartNote">يرجى التواصل معنا لإتمام الدفع والاستلام.</span>
+                </div>
+            </div>
+
+            <!-- Account Content -->
+            <div id="tab-account" class="p-6 hidden overflow-y-auto flex-1">
+                <h3 class="text-lg font-bold mb-6 border-b pb-2" data-i18n="contactInfo">معلومات التواصل</h3>
+                
+                <div class="space-y-6">
+                    <!-- Email -->
+                    <div class="flex items-start gap-3">
+                        <div class="bg-red-100 p-2 rounded-lg text-red-600">
+                            <i class="fas fa-envelope fa-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500" data-i18n="emailLabel">البريد الإلكتروني</p>
+                            <a href="mailto:wabou580@gmail.com" class="text-blue-600 font-semibold hover:underline dir-ltr block">wabou580@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp -->
+                    <div class="flex items-start gap-3">
+                        <div class="bg-green-100 p-2 rounded-lg text-green-600">
+                            <i class="fab fa-whatsapp fa-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500" data-i18n="phoneLabel">رقم الهاتف (واتساب)</p>
+                            <a id="account-phone-link" href="https://wa.me/212764312697" target="_blank" class="text-blue-600 font-semibold hover:underline dir-ltr block">+212 764312697</a>
+                            <p class="text-xs text-gray-600 mt-2" data-i18n="paymentNote">
+                                للحصول على منتجك يمكنك الدفع المبلغ المستحق للتسليم للمنتج المطلوب يرجى التواصل معنا.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div class="p-4 bg-gray-50 border-t">
+                <button onclick="toggleMenu()" class="w-full py-2 bg-gray-300 hover:bg-gray-400 rounded-lg transition" data-i18n="closeBtn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-20 px-4 text-center relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-5xl font-bold mb-4 tracking-wide text-amber-300">SAMOWAN</h1>
+            <p class="text-xl text-blue-100" data-i18n="heroSubtitle">المتجر الأول للمنتجات الرقمية: كتب، شعارات، وقوالب احترافية</p>
+        </div>
+    </header>
+
+    <!-- Products Grid -->
+    <main class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 relative inline-block right-1/2 transform translate-x-1/2">
+            <span data-i18n="latestProducts">أحدث المنتجات</span>
+            <span class="block h-1 w-24 bg-blue-600 mt-2 mx-auto rounded"></span>
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" id="products-container">
+            <!-- Products will be injected here via JS -->
+        </div>
+    </main>
+
+    <!-- Important Note Section -->
+    <section class="bg-indigo-100 border-t border-b border-indigo-200 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-indigo-200">
+                <i class="fas fa-info-circle text-blue-600 text-3xl mb-3"></i>
+                <h3 class="text-xl font-bold text-gray-800 mb-3" data-i18n="importantTitle">تعليمات هامة للعملاء</h3>
+                <p class="text-gray-700 leading-relaxed" data-i18n="importantText">
+                    للحصول على منتجك يرجى التواصل معنا. المرجو إتمام الدفع قبل إستلام المنتج. للحصول على أي منتج من خلال التواصل معنا. المبلغ $9 - $10. في حال حدوث خطأ في الموقع يرجى التواصل معنا. - في حال حدوث خطأ في المنتج يمكنك إسترجاع مبلغك.
+                </p>
+                <a id="footer-contact-link" href="https://wa.me/212764312697" target="_blank" class="inline-block mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-full transition">
+                    <i class="fab fa-whatsapp"></i> <span data-i18n="contactBtn">تواصل معنا الآن</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 text-center">
+        <p>&copy; 2025/2026 SAMOWAN. <span data-i18n="rights">جميع الحقوق محفوظة.</span></p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Language Data
+        const translations = {
+            ar: {
+                dir: 'rtl',
+                menuBtn: 'القائمة / السلة',
+                cartTab: 'سلة المشتريات',
+                accountTab: 'حسابي',
+                selectedProducts: 'المنتجات المختارة',
+                emptyCart: 'السلة فارغة حالياً',
+                cartNote: 'يرجى التواصل معنا لإتمام الدفع والاستلام.',
+                contactInfo: 'معلومات التواصل',
+                emailLabel: 'البريد الإلكتروني',
+                phoneLabel: 'رقم الهاتف (واتساب)',
+                paymentNote: 'للحصول على منتجك يمكنك الدفع المبلغ المستحق للتسليم للمنتج المطلوب يرجى التواصل معنا.',
+                closeBtn: 'إغلاق',
+                heroSubtitle: 'المتجر الأول للمنتجات الرقمية: كتب، شعارات، وقوالب احترافية',
+                latestProducts: 'أحدث المنتجات',
+                importantTitle: 'تعليمات هامة للعملاء',
+                importantText: 'للحصول على منتجك يرجى التواصل معنا. المرجو إتمام الدفع قبل إستلام المنتج. للحصول على أي منتج من خلال التواصل معنا. المبلغ $9 - $10. في حال حدوث خطأ في الموقع يرجى التواصل معنا. - في حال حدوث خطأ في المنتج يمكنك إسترجاع مبلغك.',
+                contactBtn: 'تواصل معنا الآن',
+                rights: 'جميع الحقوق محفوظة.',
+                addToCart: 'إضافة للسلة',
+                contactForBuy: 'تواصل للشراء والاستلام',
+                msgBuy: 'أريد شراء',
+                cartAlert: 'المنتج موجود بالفعل في السلة',
+                footerMsg: 'مرحباً، أود الاستفسار حول خدماتكم ومنتجاتكم المميزة.',
+                accountMsg: 'مرحباً، أرغب في التواصل معكم بخصوص خدمات متجر SAMOWAN.'
+            },
+            en: {
+                dir: 'ltr',
+                menuBtn: 'Menu / Cart',
+                cartTab: 'Shopping Cart',
+                accountTab: 'My Account',
+                selectedProducts: 'Selected Products',
+                emptyCart: 'Cart is currently empty',
+                cartNote: 'Please contact us to complete payment and delivery.',
+                contactInfo: 'Contact Information',
+                emailLabel: 'Email Address',
+                phoneLabel: 'Phone (WhatsApp)',
+                paymentNote: 'To receive your product, please pay the due amount. Contact us for delivery.',
+                closeBtn: 'Close',
+                heroSubtitle: 'The #1 Store for Digital Products: Books, Logos, and Professional Templates',
+                latestProducts: 'Latest Products',
+                importantTitle: 'Important Instructions',
+                importantText: 'To get your product, please contact us. Please complete payment before receiving the product. Products cost $9 - $10. If an error occurs on the site, please contact us. If there is an error with the product, you can get a refund.',
+                contactBtn: 'Contact Us Now',
+                rights: 'All Rights Reserved.',
+                addToCart: 'Add to Cart',
+                contactForBuy: 'Contact to Buy',
+                msgBuy: 'I want to buy',
+                cartAlert: 'Product is already in the cart',
+                footerMsg: 'Hello, I would like to inquire about your distinctive services and products.',
+                accountMsg: 'Hello, I would like to contact you regarding SAMOWAN store services.'
+            },
+            fr: {
+                dir: 'ltr',
+                menuBtn: 'Menu / Panier',
+                cartTab: 'Panier',
+                accountTab: 'Mon Compte',
+                selectedProducts: 'Produits Sélectionnés',
+                emptyCart: 'Le panier est vide',
+                cartNote: 'Veuillez nous contacter pour le paiement et la livraison.',
+                contactInfo: 'Informations de Contact',
+                emailLabel: 'Adresse E-mail',
+                phoneLabel: 'Téléphone (WhatsApp)',
+                paymentNote: 'Pour recevoir votre produit, veuillez payer le montant dû. Contactez-nous pour la livraison.',
+                closeBtn: 'Fermer',
+                heroSubtitle: 'Le premier magasin de produits numériques : Livres, Logos et Modèles professionnels',
+                latestProducts: 'Derniers Produits',
+                importantTitle: 'Instructions Importantes',
+                importantText: 'Pour obtenir votre produit, veuillez nous contacter. Veuillez effectuer le paiement avant de recevoir le produit. Le prix est de 9 $ à 10 $. En cas d\'erreur sur le site, veuillez nous contacter. En cas d\'erreur avec le produit, vous pouvez être remboursé.',
+                contactBtn: 'Contactez-nous',
+                rights: 'Tous droits réservés.',
+                addToCart: 'Ajouter au panier',
+                contactForBuy: 'Contacter pour acheter',
+                msgBuy: 'Je veux acheter',
+                cartAlert: 'Le produit est déjà dans le panier',
+                footerMsg: 'Bonjour, je voudrais me renseigner sur vos services et produits distinctifs.',
+                accountMsg: 'Bonjour, je souhaite vous contacter concernant les services de la boutique SAMOWAN.'
+            }
+        };
+
+        // Product Data with Translations
+        const products = [
+            {
+                id: 1,
+                price: 9,
+                image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400',
+                data: {
+                    ar: { type: 'كتاب', title: 'دليل التسويق الرقمي', desc: 'كتاب شامل لتعلم أساسيات التسويق.' },
+                    en: { type: 'Book', title: 'Digital Marketing Guide', desc: 'Comprehensive guide to marketing basics.' },
+                    fr: { type: 'Livre', title: 'Guide Marketing Numérique', desc: 'Guide complet des bases du marketing.' }
+                }
+            },
+            {
+                id: 3,
+                price: 9,
+                image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=400',
+                data: {
+                    ar: { type: 'قالب', title: 'قالب موقع شخصي', desc: 'قالب HTML/CSS متجاوب بالكامل.' },
+                    en: { type: 'Template', title: 'Portfolio Template', desc: 'Fully responsive HTML/CSS template.' },
+                    fr: { type: 'Modèle', title: 'Modèle Portfolio', desc: 'Modèle HTML/CSS entièrement adaptatif.' }
+                }
+            },
+            {
+                id: 5,
+                price: 9,
+                image: 'https://images.unsplash.com/photo-1516876437184-593fda40c7ce?auto=format&fit=crop&q=80&w=400',
+                data: {
+                    ar: { type: 'شعار', title: 'شعار مطعم فاخر', desc: 'تصميم أنيق وجذاب للمطاعم.' },
+                    en: { type: 'Logo', title: 'Luxury Restaurant Logo', desc: 'Elegant and attractive design for restaurants.' },
+                    fr: { type: 'Logo', title: 'Logo Restaurant de Luxe', desc: 'Design élégant et attrayant pour restaurants.' }
+                }
+            },
+            {
+                id: 6,
+                price: 10,
+                image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
+                data: {
+                    ar: { type: 'قالب', title: 'قالب متجر إلكتروني', desc: 'واجهة مستخدم عصرية للتجارة.' },
+                    en: { type: 'Template', title: 'E-commerce Template', desc: 'Modern user interface for commerce.' },
+                    fr: { type: 'Modèle', title: 'Modèle E-commerce', desc: 'Interface utilisateur moderne pour le commerce.' }
+                }
+            }
+        ];
+
+        let cart = [];
+        let currentLang = 'ar';
+
+        // Change Language Function
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            // Update Direction and Lang Attribute
+            document.documentElement.lang = lang;
+            document.documentElement.dir = t.dir;
+
+            // Update Static Text
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (t[key]) {
+                    element.innerText = t[key];
+                }
+            });
+
+            // Update Footer WhatsApp Message
+            const footerLink = document.getElementById('footer-contact-link');
+            if (footerLink && t.footerMsg) {
+                footerLink.href = `https://wa.me/212764312697?text=${encodeURIComponent(t.footerMsg)}`;
+            }
+            
+            // Update Account Tab WhatsApp Message
+            const accountLink = document.getElementById('account-phone-link');
+            if (accountLink && t.accountMsg) {
+                accountLink.href = `https://wa.me/212764312697?text=${encodeURIComponent(t.accountMsg)}`;
+            }
+
+            // Re-render Products and Cart
+            renderProducts();
+            updateCartUI();
+            updateTabButtons();
+        }
+
+        // Render Products
+        function renderProducts() {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+            const t = translations[currentLang];
+
+            products.forEach(product => {
+                const pData = product.data[currentLang];
+                const card = document.createElement('div');
+                // Updated card border color to match new theme
+                card.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden border border-indigo-100';
+                card.innerHTML = `
+                    <div class="h-48 overflow-hidden relative">
+                        <span class="absolute top-2 ${currentLang === 'ar' ? 'right-2' : 'left-2'} bg-blue-600 text-white text-xs px-2 py-1 rounded">${pData.type}</span>
+                        <img src="${product.image}" alt="${pData.title}" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-gray-900">${pData.title}</h3>
+                            <span class="text-xl font-bold text-green-600">$${product.price}</span>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-4">${pData.desc}</p>
+                        <button onclick="addToCart(${product.id})" class="w-full bg-gray-900 hover:bg-blue-700 text-white py-2 rounded-lg transition flex items-center justify-center gap-2">
+                            <i class="fas fa-cart-plus"></i> ${t.addToCart}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle Menu
+        function toggleMenu() {
+            const modal = document.getElementById('menu-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Switch Tabs
+        function switchTab(tabName) {
+            document.getElementById('tab-cart').classList.add('hidden');
+            document.getElementById('tab-account').classList.add('hidden');
+            
+            // Reset styles
+            const inactiveClass = 'flex-1 py-3 text-gray-500 hover:text-blue-600';
+            const activeClass = 'flex-1 py-3 text-blue-600 border-b-2 border-blue-600 font-bold bg-indigo-50';
+            
+            document.getElementById('tab-cart-btn').className = inactiveClass;
+            document.getElementById('tab-account-btn').className = inactiveClass;
+
+            if(tabName === 'cart') {
+                document.getElementById('tab-cart').classList.remove('hidden');
+                document.getElementById('tab-cart-btn').className = activeClass;
+            } else {
+                document.getElementById('tab-account').classList.remove('hidden');
+                document.getElementById('tab-account-btn').className = activeClass;
+            }
+        }
+
+        function updateTabButtons() {
+             // Logic to refresh tabs if needed
+        }
+
+        // Add to Cart
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const t = translations[currentLang];
+            if(!cart.some(item => item.id === id)) {
+                cart.push(product);
+                updateCartUI();
+                document.getElementById('menu-modal').classList.remove('hidden');
+                switchTab('cart');
+            } else {
+                alert(t.cartAlert);
+                document.getElementById('menu-modal').classList.remove('hidden');
+                switchTab('cart');
+            }
+        }
+
+        // Remove from Cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // Update Cart UI
+        function updateCartUI() {
+            const cartContainer = document.getElementById('cart-items');
+            const badge = document.getElementById('cart-badge');
+            const cartNote = document.getElementById('cart-note');
+            const t = translations[currentLang];
+            
+            badge.innerText = cart.length;
+            badge.classList.remove('hidden');
+            if(cart.length === 0) badge.classList.add('hidden');
+
+            cartContainer.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `<p class="text-gray-500 text-center py-4">${t.emptyCart}</p>`;
+                cartNote.classList.add('hidden');
+                return;
+            }
+
+            cartNote.classList.remove('hidden');
+
+            cart.forEach((item, index) => {
+                // Get translated data for this item based on currentLang
+                const pData = item.data[currentLang];
+                
+                cartContainer.innerHTML += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm relative">
+                        <button onclick="removeFromCart(${index})" class="absolute top-2 ${currentLang === 'ar' ? 'left-2' : 'right-2'} text-red-400 hover:text-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        
+                        <div class="flex items-center gap-3">
+                            <img src="${item.image}" class="w-12 h-12 rounded object-cover border">
+                            <div class="${currentLang === 'ar' ? 'text-right' : 'text-left'}">
+                                <h4 class="font-bold text-sm text-gray-800">${pData.title}</h4>
+                                <p class="text-blue-600 font-bold text-sm">$${item.price}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 pt-2 border-t text-center">
+                             <a href="https://wa.me/212764312697?text=${encodeURIComponent(t.msgBuy + ' ' + pData.title)}" target="_blank" class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center justify-center gap-1">
+                                <i class="fab fa-whatsapp"></i> ${t.contactForBuy}
+                             </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Initial Render
+        changeLanguage('ar');
+    </script>
+</body>
+</html>
